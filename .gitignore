@@ -1,0 +1,38 @@
+# Ignore data folder and all its contents
+data/
+data/*
+
+# Ignore Tool folder and all its contents
+tools/
+tools/*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+
+# Model checkpoints and saved models
+saved_models/
+*.h5
+
+# Logs and plots
+plots/
+logs/
+*.log
+
+# Sampling test outputs
+sampling_test/
