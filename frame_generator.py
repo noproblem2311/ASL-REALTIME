@@ -154,23 +154,37 @@ class VideoFrameGenerator(keras.utils.Sequence):
             index_sampling = self.frame_sampling(length_file)  # sampling indxs
 
             frame_count = 0
+            valid_frames = []
             for j, n_pic in enumerate(index_sampling):
                 cap.set(cv2.CAP_PROP_POS_FRAMES, n_pic)  # jump to that index
                 ret, frame = cap.read()
                 
+                if not ret or frame is None:
+                    print(f"Warning: Failed to read frame {n_pic} from {path_file}")
+                    continue
                     
                 try:
                     new_image = cv2.resize(frame, self.dim)
-                    X[i, j, :, :, :] = new_image
-                    frame_count += 1
+                    if new_image.size > 0:  # Check if resize was successful
+                        valid_frames.append(new_image)
+                        frame_count += 1
                 except cv2.error as e:
-                    print(f"Error: Failed to resize frame {n_pic} from {path_file}: {e}")
+                    print(f"Warning: Failed to resize frame {n_pic} from {path_file}: {e}")
                     continue
 
+            # If we don't have enough valid frames, skip this video
+            if frame_count < self.n_sequence:
+                print(f"Warning: Not enough valid frames in {path_file} ({frame_count}/{self.n_sequence})")
+                cap.release()
+                continue
+
+            # Convert valid frames to numpy array
+            X[i] = np.array(valid_frames[:self.n_sequence])
+            
             if self.type_gen == 'train':
-                X[i,] = self.sampling_augmentation(X[i,]) / 255.0
+                X[i] = self.sampling_augmentation(X[i]) / 255.0
             else:
-                X[i,] = X[i,] / 255.0
+                X[i] = X[i] / 255.0
 
             Y[i] = self.labels[ID]
             cap.release()

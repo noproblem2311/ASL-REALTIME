@@ -1,8 +1,12 @@
 import glob
 import os
 import json
+import cv2
+import numpy as np
 
 def labels_to_number(path):
+    """
+    Convert string labels in numbers.
 
     :param path: path to folder.
     :return: a dictionary.
@@ -242,10 +246,37 @@ def get_labels():
         labels_dict[label] = i
     return labels_dict
 
+def is_valid_video(video_path):
+    """
+    Check if a video file is valid and can be read.
+    
+    :param video_path: Path to the video file
+    :return: True if video is valid, False otherwise
+    """
+    try:
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            return False
+            
+        # Try to read first frame
+        ret, frame = cap.read()
+        if not ret or frame is None:
+            return False
+            
+        # Check frame dimensions
+        if frame.size == 0:
+            return False
+            
+        cap.release()
+        return True
+    except Exception as e:
+        print(f"Error checking video {video_path}: {e}")
+        return False
 
 def videos_to_dict(path, labels):
     """
     Read the videos and return a dict like {'path_to_video', 'label'}.
+    Only includes videos whose labels are in the predefined labels dictionary.
 
     :param path: path to videos folder.
     :param labels: labels as dict.
@@ -254,8 +285,18 @@ def videos_to_dict(path, labels):
     videos_dict = {}
     for root, dirs, files in os.walk(os.path.relpath(path)):
         for file in files:
+            if not file.endswith(('.mp4', '.avi', '.mov')):  # Only process video files
+                continue
+                
             video_name = os.path.join(root, file)
             dir_name = os.path.basename(os.path.dirname(video_name))  # label
-            videos_dict[video_name] = labels[dir_name]
-
+            
+            # Only include videos whose labels are in our predefined list
+            if dir_name in labels:
+                # Check if video is valid before adding
+                if is_valid_video(video_name):
+                    videos_dict[video_name] = labels[dir_name]
+                else:
+                    print(f"Warning: Skipping invalid video {video_name}")
+                    
     return videos_dict

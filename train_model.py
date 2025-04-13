@@ -3,14 +3,25 @@ from itertools import islice
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 
-from data_utils import videos_to_dict, labels_to_number, get_labels
+from data_utils import get_labels, videos_to_dict
 from frame_generator import VideoFrameGenerator
 from models import create_model_wlasl20c
 from models import create_model_wlasl2000   
 
+# Configure GPU memory growth
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
+        print("GPU memory growth failed, falling back to CPU")
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Force CPU usage
 
 # model settings
 height = 224
@@ -19,20 +30,20 @@ dim = (height, width)
 batch_size = 8
 frames = 10
 channels = 3
-output = 2000
+output = 200
 
 TRAIN_PATH = './data2/data/train/'
 VAL_PATH = './data2/data/val/'
 TEST_PATH = './data2/data/test/'
 
 # transform labels from string to number
-labels = labels_to_number(TRAIN_PATH)
+labels = get_labels()
 print(f'Labels: {labels}')
 
 # load dataset as dict
-y_train_dict = videos_to_dict(TRAIN_PATH)
-y_val_dict = videos_to_dict(VAL_PATH)
-y_test_dict = videos_to_dict(TEST_PATH)
+y_train_dict = videos_to_dict(TRAIN_PATH, labels)
+y_val_dict = videos_to_dict(VAL_PATH, labels)
+y_test_dict = videos_to_dict(TEST_PATH, labels)
 
 print(f'\nTrain set: {len(y_train_dict)} videos - with labels')
 print(f'Val   set: {len(y_val_dict)} videos - with labels')
