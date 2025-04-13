@@ -6,7 +6,7 @@ import pandas as pd
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 
-from data_utils import labels_to_number, videos_to_dict
+from data_utils import videos_to_dict, labels_to_number, get_labels
 from frame_generator import VideoFrameGenerator
 from models import create_model_wlasl20c
 from models import create_model_wlasl2000   
@@ -21,18 +21,18 @@ frames = 10
 channels = 3
 output = 2000
 
-TRAIN_PATH = './data/train/'
-VAL_PATH = './data/val/'
-TEST_PATH = './data/test/'
+TRAIN_PATH = './data2/data/train/'
+VAL_PATH = './data2/data/val/'
+TEST_PATH = './data2/data/test/'
 
 # transform labels from string to number
 labels = labels_to_number(TRAIN_PATH)
 print(f'Labels: {labels}')
 
 # load dataset as dict
-y_train_dict = videos_to_dict(TRAIN_PATH, labels)
-y_val_dict = videos_to_dict(VAL_PATH, labels)
-y_test_dict = videos_to_dict(TEST_PATH, labels)
+y_train_dict = videos_to_dict(TRAIN_PATH)
+y_val_dict = videos_to_dict(VAL_PATH)
+y_test_dict = videos_to_dict(TEST_PATH)
 
 print(f'\nTrain set: {len(y_train_dict)} videos - with labels')
 print(f'Val   set: {len(y_val_dict)} videos - with labels')
